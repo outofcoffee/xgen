@@ -9,6 +9,7 @@
 package xgen
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -67,6 +68,9 @@ func NewParser(options *Options) *Options {
 // documents by given options. If value of the property extract is false,
 // parse will fetch schema used in <import> or <include> statements.
 func (opt *Options) Parse() (err error) {
+	if err := validateOptions(opt); err != nil {
+		return err
+	}
 	opt.FileDir = filepath.Dir(opt.FilePath)
 	var fi os.FileInfo
 	fi, err = os.Stat(opt.FilePath)
@@ -253,5 +257,23 @@ func (opt *Options) GetValueType(value string, XSDSchema []interface{}) (valueTy
 		return
 	}
 	valueType = getBasefromSimpleType(trimNSPrefix(value), parser.ProtoTree)
+	return
+}
+
+func validateOptions(opt *Options) (err error) {
+	if opt.FilePath == "" {
+		return fmt.Errorf("file path is required")
+	}
+	if !opt.Extract {
+		if opt.Lang == "" {
+			return fmt.Errorf("language is required")
+		}
+		if opt.InputDir == "" {
+			return fmt.Errorf("input directory is required")
+		}
+		if opt.OutputDir == "" {
+			return fmt.Errorf("output directory is required")
+		}
+	}
 	return
 }

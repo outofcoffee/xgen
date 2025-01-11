@@ -152,3 +152,92 @@ func TestParseRust(t *testing.T) {
 func TestParseRustExternal(t *testing.T) {
 	testParseForSource(t, "Rust", "rs", "rs", externalFixtureDir, true, false)
 }
+
+func Test_validateOptions(t *testing.T) {
+	type args struct {
+		opt *Options
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "empty file path",
+			args: args{
+				opt: &Options{
+					FilePath:            "",
+					OutputDir:           "",
+					Extract:             false,
+					Lang:                "",
+					IncludeMap:          nil,
+					LocalNameNSMap:      nil,
+					NSSchemaLocationMap: nil,
+					ParseFileList:       nil,
+					ParseFileMap:        nil,
+					ProtoTree:           nil,
+				},
+			},
+			wantErr: assert.Error,
+		},
+		{
+			name: "empty output dir",
+			args: args{
+				opt: &Options{
+					FilePath:            "some file",
+					OutputDir:           "",
+					Extract:             false,
+					Lang:                "",
+					IncludeMap:          nil,
+					LocalNameNSMap:      nil,
+					NSSchemaLocationMap: nil,
+					ParseFileList:       nil,
+					ParseFileMap:        nil,
+					ProtoTree:           nil,
+				},
+			},
+			wantErr: assert.Error,
+		},
+		{
+			name: "empty input dir",
+			args: args{
+				opt: &Options{
+					FilePath:            "some file",
+					InputDir:            "",
+					Extract:             false,
+					Lang:                "go",
+					IncludeMap:          nil,
+					LocalNameNSMap:      nil,
+					NSSchemaLocationMap: nil,
+					ParseFileList:       nil,
+					ParseFileMap:        nil,
+					ProtoTree:           nil,
+				},
+			},
+			wantErr: assert.Error,
+		},
+		{
+			name: "empty lang",
+			args: args{
+				opt: &Options{
+					FilePath:            "some file",
+					OutputDir:           "some dir",
+					Extract:             false,
+					Lang:                "",
+					IncludeMap:          nil,
+					LocalNameNSMap:      nil,
+					NSSchemaLocationMap: nil,
+					ParseFileList:       nil,
+					ParseFileMap:        nil,
+					ProtoTree:           nil,
+				},
+			},
+			wantErr: assert.Error,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.wantErr(t, validateOptions(tt.args.opt), fmt.Sprintf("validateOptions(%v)", tt.args.opt))
+		})
+	}
+}
