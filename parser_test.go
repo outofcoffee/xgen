@@ -29,12 +29,17 @@ var (
 )
 
 func TestParseGo(t *testing.T) {
-	testParseForSource(t, "Go", "go", "go", testFixtureDir, false)
+	testParseForSource(t, "Go", "go", "go", testFixtureDir, false, false)
 }
 
 // TestParseGoExternal runs tests on any external XSDs within the externalFixtureDir
 func TestParseGoExternal(t *testing.T) {
-	testParseForSource(t, "Go", "go", "go", externalFixtureDir, true)
+	testParseForSource(t, "Go", "go", "go", externalFixtureDir, true, false)
+}
+
+// TestParseGoInMemory runs tests using an in-memory schema
+func TestParseGoInMemory(t *testing.T) {
+	testParseForSource(t, "Go", "go", "go", testFixtureDir, false, true)
 }
 
 // testParseForSource runs parsing tests for a given language. The sourceDirectory specifies the root of the
@@ -46,7 +51,9 @@ func TestParseGoExternal(t *testing.T) {
 //
 // The test cleans up files it generates unless leaveOutput is set to true. In which case, the generate file is left
 // on disk for manual inspection under <sourceDirectory>/<langDirName>/output.
-func testParseForSource(t *testing.T, lang string, fileExt string, langDirName string, sourceDirectory string, leaveOutput bool) {
+//
+// The inMemorySchema flag is used to test parsing with an in-memory schema.
+func testParseForSource(t *testing.T, lang string, fileExt string, langDirName string, sourceDirectory string, leaveOutput bool, inMemorySchema bool) {
 	codeDir := filepath.Join(sourceDirectory, langDirName)
 
 	outputDir := filepath.Join(codeDir, "output")
@@ -74,9 +81,18 @@ func testParseForSource(t *testing.T, lang string, fileExt string, langDirName s
 			xsdName, err := filepath.Rel(inputDir, file)
 			require.NoError(t, err)
 
+			var schema []byte
+			if inMemorySchema {
+				t.Logf("Using in-memory schema for %s", file)
+				schemaFile, err := ioutil.ReadFile(file)
+				require.NoError(t, err)
+				schema = schemaFile
+			}
+
 			t.Run(xsdName, func(t *testing.T) {
 				parser := NewParser(&Options{
 					FilePath:            file,
+					Schema:              schema,
 					InputDir:            inputDir,
 					OutputDir:           outputDir,
 					Lang:                lang,
@@ -106,33 +122,33 @@ func testParseForSource(t *testing.T, lang string, fileExt string, langDirName s
 }
 
 func TestParseTypeScript(t *testing.T) {
-	testParseForSource(t, "TypeScript", "ts", "ts", testFixtureDir, false)
+	testParseForSource(t, "TypeScript", "ts", "ts", testFixtureDir, false, false)
 }
 
 func TestParseTypeScriptExternal(t *testing.T) {
-	testParseForSource(t, "TypeScript", "ts", "ts", externalFixtureDir, true)
+	testParseForSource(t, "TypeScript", "ts", "ts", externalFixtureDir, true, false)
 }
 
 func TestParseC(t *testing.T) {
-	testParseForSource(t, "C", "h", "c", testFixtureDir, false)
+	testParseForSource(t, "C", "h", "c", testFixtureDir, false, false)
 }
 
 func TestParseCExternal(t *testing.T) {
-	testParseForSource(t, "C", "h", "c", externalFixtureDir, true)
+	testParseForSource(t, "C", "h", "c", externalFixtureDir, true, false)
 }
 
 func TestParseJava(t *testing.T) {
-	testParseForSource(t, "Java", "java", "java", testFixtureDir, false)
+	testParseForSource(t, "Java", "java", "java", testFixtureDir, false, false)
 }
 
 func TestParseJavaExternal(t *testing.T) {
-	testParseForSource(t, "Java", "java", "java", externalFixtureDir, true)
+	testParseForSource(t, "Java", "java", "java", externalFixtureDir, true, false)
 }
 
 func TestParseRust(t *testing.T) {
-	testParseForSource(t, "Rust", "rs", "rs", testFixtureDir, false)
+	testParseForSource(t, "Rust", "rs", "rs", testFixtureDir, false, false)
 }
 
 func TestParseRustExternal(t *testing.T) {
-	testParseForSource(t, "Rust", "rs", "rs", externalFixtureDir, true)
+	testParseForSource(t, "Rust", "rs", "rs", externalFixtureDir, true, false)
 }
