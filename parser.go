@@ -11,6 +11,7 @@ package xgen
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,6 +37,10 @@ type Options struct {
 	ParseFileMap        map[string][]interface{}
 	ProtoTree           []interface{}
 	RemoteSchema        map[string][]byte
+
+	// Schema is the content of the schema file at 'FilePath'. If Schema is set,
+	// the parser will use the content of Schema instead of reading the file.
+	Schema []byte
 
 	InElement        string
 	CurrentEle       string
@@ -71,12 +76,17 @@ func (opt *Options) Parse() (err error) {
 	if fi.IsDir() {
 		return
 	}
-	var xmlFile *os.File
-	xmlFile, err = os.Open(opt.FilePath)
-	if err != nil {
-		return
+
+	var xmlReader io.Reader
+	if opt.Schema != nil {
+		xmlReader = bytes.NewReader(opt.Schema)
+	} else {
+		xmlReader, err = os.Open(opt.FilePath)
+		if err != nil {
+			return err
+		}
+		defer xmlReader.(io.ReadCloser).Close()
 	}
-	defer xmlFile.Close()
 	if !opt.Extract {
 		opt.ParseFileList[opt.FilePath] = true
 		opt.ParseFileMap[opt.FilePath] = opt.ProtoTree
@@ -97,7 +107,7 @@ func (opt *Options) Parse() (err error) {
 	opt.AttributeGroup = NewStack()
 	opt.Choice = NewStack()
 
-	decoder := xml.NewDecoder(xmlFile)
+	decoder := xml.NewDecoder(xmlReader)
 	decoder.CharsetReader = charset.NewReaderLabel
 	for {
 		token, _ := decoder.Token()
