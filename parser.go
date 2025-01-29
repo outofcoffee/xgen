@@ -29,6 +29,7 @@ type Options struct {
 	InputDir            string
 	OutputDir           string
 	Extract             bool
+	SkipGenerate        bool
 	Lang                string
 	Package             string
 	IncludeMap          map[string]bool
@@ -142,7 +143,7 @@ func (opt *Options) Parse() (err error) {
 
 	}
 
-	if !opt.Extract {
+	if !opt.Extract && !opt.SkipGenerate {
 		opt.ParseFileList[opt.FilePath] = true
 		opt.ParseFileMap[opt.FilePath] = opt.ProtoTree
 		path := filepath.Join(opt.OutputDir, strings.TrimPrefix(opt.FilePath, opt.InputDir))
