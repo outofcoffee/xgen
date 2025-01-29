@@ -265,7 +265,7 @@ func validateOptions(opt *Options) (err error) {
 	if opt.FilePath == "" {
 		return fmt.Errorf("file path is required")
 	}
-	if !opt.Extract {
+	if !opt.SkipGenerate {
 		if opt.Lang == "" {
 			return fmt.Errorf("language is required")
 		}
